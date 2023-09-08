@@ -1,3 +1,4 @@
+from rest_framework.authtoken.models import Token
 from django.contrib.auth import get_user_model
 from django.shortcuts import get_object_or_404
 from rest_framework.views import APIView
@@ -34,12 +35,15 @@ class ActivationAPIView(APIView):
 class LoginAPIView(ObtainAuthToken):
     serializer_class = LoginSerializer
 
+
 class LogoutAPIView(APIView):
     permission_classes = [IsAuthenticated]
     
     def post(self, request):
-        # Token
-        return Response('Это секретная информация')
+        token = get_object_or_404(Token, user=request.user)
+        token.delete()
+        return Response('Вы успешно разлогинились!')
+
 
 class ChangePasswordAPIView(APIView):
     ...
