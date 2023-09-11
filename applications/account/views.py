@@ -7,6 +7,7 @@ from rest_framework.authtoken.views import ObtainAuthToken
 from rest_framework.permissions import IsAuthenticated
 from applications.account.serializers import RegisterSerializer, LoginSerializer
 
+
 User = get_user_model()
 
 
@@ -32,17 +33,17 @@ class ActivationAPIView(APIView):
         return Response('Успешно', status=200)
 
 
-class LoginAPIView(ObtainAuthToken):
-    serializer_class = LoginSerializer
+# class LoginAPIView(ObtainAuthToken):
+#     serializer_class = LoginSerializer
 
 
-class LogoutAPIView(APIView):
-    permission_classes = [IsAuthenticated]
+# class LogoutAPIView(APIView):
+#     permission_classes = [IsAuthenticated]
     
-    def post(self, request):
-        token = get_object_or_404(Token, user=request.user)
-        token.delete()
-        return Response('Вы успешно разлогинились!')
+#     def post(self, request):
+#         token = get_object_or_404(Token, user=request.user)
+#         token.delete()
+#         return Response('Вы успешно разлогинились!')
 
 
 class ChangePasswordAPIView(APIView):
