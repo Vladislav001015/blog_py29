@@ -1,11 +1,11 @@
 from rest_framework import generics, viewsets
-from applications.post.models import Post
-from rest_framework.permissions import IsAuthenticated, IsAdminUser
+from applications.post.models import Post, Comment, Like, Rating
+from rest_framework.permissions import IsAuthenticated, IsAdminUser, IsAuthenticatedOrReadOnly
 from applications.post.permissions import IsOwnerOrAdminOrReadOnly
 from rest_framework.response import Response
-from applications.post.serializers import PostSerializer
+from applications.post.serializers import PostSerializer, CommentSerializer, RatingSerializer
 from rest_framework.pagination import PageNumberPagination
-
+from rest_framework.decorators import action
 
 class LargeResultsSetPagination(PageNumberPagination):
     page_size = 2
@@ -18,9 +18,40 @@ class PostAPIView(viewsets.ModelViewSet):
     serializer_class = PostSerializer
     permission_classes = [IsAuthenticated]
     pagination_class = LargeResultsSetPagination
-    
+    @action(methods=['POST'], detail=True)
+    def like(self, request, pk, *args, **kwargs):
+        user = request.user
+        like_obj, _ = Like.objects.get_or_create(owner=user, post_id=pk)
+        like_obj.is_like = not like_obj.is_like
+        like_obj.save()
+        status = 'liked'
+        if not like_obj.is_like:
+            status = 'unliked'
+
+        return Response({'status': status})
+    @action(methods=['POST'], detail=True)  #post/18/rating
+    def rating(self, request, pk, *args, **kwargs):
+        serializer = RatingSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        rating_obj, _ = Rating.objects.get_or_create(owner=request.user, post_id=pk)
+        rating_obj.rating = serializer.data['rating']
+        rating_obj.save()
+        return Response(serializer.data)
+
     def perform_create(self, serializer):
         serializer.save(owner=self.request.user)
+
+
+class CommentModelViewSet(viewsets.ModelViewSet):
+    queryset = Comment.objects.all()
+    serializer_class = CommentSerializer
+    permission_classes = [IsAuthenticatedOrReadOnly]
+
+    def perform_create(self, serializer):
+        serializer.save(owner=self.request.user)
+
+
+
 
 
 # class PostViewSet(viewsets.ViewSet):
