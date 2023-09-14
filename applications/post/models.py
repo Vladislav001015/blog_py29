@@ -14,7 +14,7 @@ class Post(models.Model):
     )
     title = models.CharField('Название', max_length=70)
     description = models.TextField('Описание', blank=True, null=True)
-    image = models.ImageField('Изображение', upload_to='images')
+    # image = models.ImageField('Изображение', upload_to='images')
     count_views = models.PositiveIntegerField('Количество просмотров', default=0)
     created_at = models.DateTimeField('Дата создания', auto_now_add=True)
     updated_at = models.DateTimeField('Дата обновления', auto_now=True)
@@ -25,6 +25,19 @@ class Post(models.Model):
     class Meta:
         ordering = ('-id',) # 5, 4, ...
 
+
+class PostImage(models.Model):
+    """
+        Картинки к постам
+    """
+    image = models.ImageField(upload_to='images/')
+    post = models.ForeignKey(
+        Post, on_delete=models.CASCADE,
+        related_name='images'
+    )
+
+    def __str__(self):
+        return f'{self.post.title}'
 
 
 class Comment(models.Model):

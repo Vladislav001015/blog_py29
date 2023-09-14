@@ -1,9 +1,9 @@
-from rest_framework import generics, viewsets
-from applications.post.models import Post, Comment, Like, Rating
+from rest_framework import generics, viewsets, mixins
+from applications.post.models import Post, Comment, Like, PostImage, Rating
 from rest_framework.permissions import IsAuthenticated, IsAdminUser, IsAuthenticatedOrReadOnly
 from applications.post.permissions import IsOwnerOrAdminOrReadOnly
 from rest_framework.response import Response
-from applications.post.serializers import PostSerializer, CommentSerializer, RatingSerializer
+from applications.post.serializers import PostImageSerializer, PostSerializer, CommentSerializer, RatingSerializer
 from rest_framework.pagination import PageNumberPagination
 from rest_framework.decorators import action
 from django_filters.rest_framework import DjangoFilterBackend
@@ -69,7 +69,13 @@ class CommentModelViewSet(viewsets.ModelViewSet):
         serializer.save(owner=self.request.user)
 
 
-
+class ImageModelViewSet(mixins.CreateModelMixin,
+                        mixins.DestroyModelMixin,
+                        viewsets.GenericViewSet):
+    queryset = PostImage.objects.all()
+    serializer_class = PostImageSerializer
+    permission_classes = [IsAuthenticated]
+   
 
 
 # class PostViewSet(viewsets.ViewSet):

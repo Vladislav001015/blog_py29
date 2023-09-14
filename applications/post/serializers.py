@@ -1,6 +1,13 @@
 from rest_framework import serializers
 
-from applications.post.models import Post, Comment, Rating, Like
+from applications.post.models import Post, Comment, PostImage, Rating, Like
+
+
+class PostImageSerializer(serializers.ModelSerializer):
+    
+    class Meta:
+        model = PostImage
+        fields = '__all__'
 
 
 class LikeSerializer(serializers.ModelSerializer):
@@ -20,18 +27,28 @@ class CommentSerializer(serializers.ModelSerializer):
 
 
 class PostSerializer(serializers.ModelSerializer):
-    # likes = LikeSerializer(many=True, read_only=True)
+    likes = LikeSerializer(many=True, read_only=True)
     owner = serializers.ReadOnlyField(source='owner.email')
-    # comments = CommentSerializer(many=True, read_only=True)
+    comments = CommentSerializer(many=True, read_only=True)
+    images = PostImageSerializer(many=True, read_only=True)
     
     class Meta:
         model = Post
         fields = '__all__'
 
     def create(self, validated_data):
-        print(validated_data)
+        post = Post.objects.create(**validated_data)
+        
+        request = self.context.get('request')
+        fiels = request.FILES
+        
+        image_objects = []
+        for file in fiels.getlist('images'):
+            image_objects.append(PostImage(post=post, image=file))
+        PostImage.objects.bulk_create(image_objects)
+        
         # return Post.objects.create(**validated_data) # title=Post3, image='', owner=''
-        return super().create(validated_data)
+        return post
     
     def to_representation(self, instance):
         # print(instance)
