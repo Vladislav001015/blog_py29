@@ -22,6 +22,9 @@ class Post(models.Model):
     def __str__(self):
         return f'{self.title}'
 
+    class Meta:
+        ordering = ('-id',) # 5, 4, ...
+
 
 
 class Comment(models.Model):
@@ -64,20 +67,3 @@ class Rating(models.Model):
 
     def __str__(self):
         return f'{self.owner} --> {self.post.title}'
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-

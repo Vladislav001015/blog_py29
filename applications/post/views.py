@@ -6,6 +6,9 @@ from rest_framework.response import Response
 from applications.post.serializers import PostSerializer, CommentSerializer, RatingSerializer
 from rest_framework.pagination import PageNumberPagination
 from rest_framework.decorators import action
+from django_filters.rest_framework import DjangoFilterBackend
+from rest_framework.filters import SearchFilter, OrderingFilter
+
 
 class LargeResultsSetPagination(PageNumberPagination):
     page_size = 2
@@ -16,9 +19,23 @@ class LargeResultsSetPagination(PageNumberPagination):
 class PostAPIView(viewsets.ModelViewSet):
     queryset = Post.objects.all()
     serializer_class = PostSerializer
-    permission_classes = [IsAuthenticated]
+    # permission_classes = [IsAuthenticated]
     pagination_class = LargeResultsSetPagination
-    @action(methods=['POST'], detail=True)
+    filter_backends = [DjangoFilterBackend, SearchFilter, OrderingFilter]
+    filterset_fields = ['owner', 'title']
+    search_fields = ['title']
+    ordering_fields = ['id']
+    
+    
+    # def get_queryset(self):
+    #     queryset = super().get_queryset()
+    #     filter_owner = self.request.query_params.get('owner')
+    #     if filter_owner:
+    #         queryset = queryset.filter(owner=filter_owner)
+        
+    #     return queryset
+    
+    @action(methods=['POST'], detail=True)  # api/post/1/like
     def like(self, request, pk, *args, **kwargs):
         user = request.user
         like_obj, _ = Like.objects.get_or_create(owner=user, post_id=pk)
@@ -29,6 +46,7 @@ class PostAPIView(viewsets.ModelViewSet):
             status = 'unliked'
 
         return Response({'status': status})
+    
     @action(methods=['POST'], detail=True)  #post/18/rating
     def rating(self, request, pk, *args, **kwargs):
         serializer = RatingSerializer(data=request.data)
